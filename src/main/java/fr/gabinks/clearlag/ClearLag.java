@@ -1,20 +1,10 @@
 package fr.gabinks.clearlag;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,20 +14,20 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.slf4j.Logger;
+
+import java.io.File;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(ClearLag.MODID)
+@Mod.EventBusSubscriber(modid = ClearLag.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ClearLag {
 
     // Define mod id in a common place for everything to reference
     public static final String MODID = "clearlag";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
-
     public ClearLag() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -46,11 +36,13 @@ public class ClearLag {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(new Events());
-
-        // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
     }
+    private void registerCommands(RegisterCommandsEvent event) {
+        event.getDispatcher().register(CommandsHandler.register());
+    }
+
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
@@ -59,9 +51,9 @@ public class ClearLag {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
-        LOGGER.info("ClearLag started.");
+        MinecraftForge.EVENT_BUS.register(new Events());
+        LOGGER.info("[Server Side] ClearLag started.");
     }
-
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {

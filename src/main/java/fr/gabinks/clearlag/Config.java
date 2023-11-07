@@ -1,37 +1,34 @@
 package fr.gabinks.clearlag;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import org.apache.commons.lang3.tuple.Pair;
-
+import net.minecraftforge.fml.common.Mod;
+@Mod.EventBusSubscriber(modid = ClearLag.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
-    public static final ForgeConfigSpec COMMON_SPEC;
-    public static final CommonConfig COMMON;
+    public static ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec SERVER_CONFIG;
+    public static ForgeConfigSpec.ConfigValue<Integer> timebetweenclearlag;
+    public static ForgeConfigSpec.ConfigValue<String> mob_filter;
+    public static ForgeConfigSpec.ConfigValue<String> cl_remaining;
+    public static ForgeConfigSpec.ConfigValue<String> cl_executed;
     static{
-        final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
-        COMMON_SPEC = specPair.getRight();
-        COMMON = specPair.getLeft();
-    }
-    public static class CommonConfig{
-        public final ForgeConfigSpec.ConfigValue<Integer> TIME_BETWEEN_CLEARLAG;
-        public final ForgeConfigSpec.ConfigValue<String> MOB_FILTER;
-        public final ForgeConfigSpec.ConfigValue<String> CL_REMAINING;
-        public final ForgeConfigSpec.ConfigValue<String> CL_EXECUTED;
-        public CommonConfig(ForgeConfigSpec.Builder builder){
-            builder.comment("Common configuration settings").push("common");
-            TIME_BETWEEN_CLEARLAG = builder
-                    .comment("Time between clearlag in seconds")
-                    .define("timeBetweenClearlag", 40);
-            MOB_FILTER = builder
-                    .comment("Example zombie,skeleton,wither,spider")
-                    .define("mob_filter", "");
-            CL_REMAINING = builder
-                    .comment("Modify the broadcasted message for the time remaining before clearlag execution")
-                    .define("clearlag_remaining_time_message", "Clearlag comming in {remainingTime} seconds");
-            CL_EXECUTED = builder
-                    .comment("Modify the broadcasted message when the clearlag was executed")
-                    .define("clearlag_executed_message", "Clearlag remove {entities} entities");
+        ForgeConfigSpec.Builder serverConfigBuilder = new ForgeConfigSpec.Builder();
+        serverConfigBuilder.comment("ClearLag configuration").push("general");
+        serverConfigBuilder.comment("THE CLEAR LAG DON'T REMOVE ENTITY WITH CUSTOM NAME");
+        serverConfigBuilder.comment("CLEAR LAG REMOVE AUTOMATICALLY ALL ITEMS ON THE GROUND");
+        timebetweenclearlag = serverConfigBuilder
+                .comment("Time Between each clear lags (in seconds)")
+                .define("time_between_clearlag", 40);
+        mob_filter = serverConfigBuilder
+                .comment("Configure the mob to remove at clear lag. Example zombie,skeleton,wither,spider (Default clear all vanilla mobs and items)")
+                .define("mob_filter", "");
+        cl_remaining = serverConfigBuilder
+                .comment("Configure the message when the clear lag is approaching. {timeRemaining} is the seconds remaining before clear lag so keep it in your sentence.")
+                .define("clearlag_remaining_time_msg", "Clearlag is coming in {timeRemaining} seconds");
+        cl_executed = serverConfigBuilder
+                .comment("Configure the message when the clear lag is executed. {entities} is the number of entities removed so keep it in your sentence.")
+                .define("clearlag_executed_message", "Clearlag removed {entities} entities");
+        serverConfigBuilder.pop();
 
-            builder.pop();
-        }
+        SERVER_CONFIG = serverConfigBuilder.build();
     }
 }
