@@ -1,20 +1,18 @@
 package fr.gabinks.clearlag;
 
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.logging.LogUtils;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.internal.TextComponentMessageFormatHandler;
+import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
 public class Events {
     int ticks = 0;
@@ -76,6 +74,33 @@ public class Events {
                 }
             }
         });
+        JSONObject jsonObject = new JSONObject();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String dateStr = sdf.format(new Date());
+        List<Entity> items = new ArrayList<>();
+        entityCleared.forEach(entity -> {
+            if (entity.getType().toString().contains("item") && !entity.getType().toString().contains("item_frame") && !entity.getType().toString().contains("item_frame") && !entity.getType().toString().contains("armor_stand") && !entity.getType().toString().contains("painting")){
+                items.add(entity);
+            }
+        });
+        jsonObject.put(dateStr, items);
+        String cheminFichier = "logs/clearlag_"+dateStr+".json";
+        File fichier = new File(cheminFichier);
+        if(!fichier.exists()){
+            try {
+                fichier.createNewFile();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+        try (FileWriter fileWriter = new FileWriter(fichier)){
+            fileWriter.write(jsonObject.toString());
+            System.out.println("Fichier JSON créé avec succès à : "+cheminFichier);
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         event.getServer().getPlayerList().broadcastSystemMessage(Component.literal(MsgExecuted.replace("{entities}", String.valueOf(entityCleared.toArray().length))), false);
+
     }
 }
