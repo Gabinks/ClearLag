@@ -74,31 +74,27 @@ public class Events {
                 }
             }
         });
-        JSONObject jsonObject = new JSONObject();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        JSONObject jsonPrincipal = new JSONObject();
+        JSONObject jsonDate = new JSONObject();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy-HH-mm");
         String dateStr = sdf.format(new Date());
         List<Entity> items = new ArrayList<>();
         entityCleared.forEach(entity -> {
             if (entity.getType().toString().contains("item") && !entity.getType().toString().contains("item_frame") && !entity.getType().toString().contains("item_frame") && !entity.getType().toString().contains("armor_stand") && !entity.getType().toString().contains("painting")){
                 items.add(entity);
+                JSONObject jsonNomItem = new JSONObject();
+                jsonNomItem.put("Coordinate", entity.xo + "," + entity.yo + "," + entity.zo);
+                jsonDate.put(entity.getName().toString(), jsonNomItem);
             }
         });
-        jsonObject.put(dateStr, items);
-        String cheminFichier = "logs/clearlag_"+dateStr+".json";
-        File fichier = new File(cheminFichier);
-        if(!fichier.exists()){
-            try {
-                fichier.createNewFile();
-            }
-            catch(IOException e){
+        jsonPrincipal.put(dateStr, jsonDate);
+        if(items.size() >= 0){
+            try(FileWriter fichier = new FileWriter("logs/clearlag_logs/clearlag-logs-"+dateStr+".json")){
+                fichier.write(jsonPrincipal.toString());
+                System.out.println("Fichier JSON créé avec succès : " + "clearlag-logs-"+dateStr);
+            } catch(IOException e){
                 e.printStackTrace();
             }
-        }
-        try (FileWriter fileWriter = new FileWriter(fichier)){
-            fileWriter.write(jsonObject.toString());
-            System.out.println("Fichier JSON créé avec succès à : "+cheminFichier);
-        } catch (IOException e){
-            e.printStackTrace();
         }
         event.getServer().getPlayerList().broadcastSystemMessage(Component.literal(MsgExecuted.replace("{entities}", String.valueOf(entityCleared.toArray().length))), false);
 

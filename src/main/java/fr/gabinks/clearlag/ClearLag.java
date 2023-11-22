@@ -38,6 +38,16 @@ public class ClearLag {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
+        File logsFolder = new File("logs/", "clearlag_logs");
+        if(!logsFolder.exists()){
+            boolean creationSuccess = logsFolder.mkdir();
+            if(creationSuccess){
+                System.out.println("[ClearLags] Logs folder created successfully : " + logsFolder.getAbsolutePath());
+            }
+        }
+        else{
+            System.out.println("[ClearLags] Logs folder already exists, skipping.");
+        }
     }
     private void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(CommandsHandler.register());
